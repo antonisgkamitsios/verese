@@ -1,8 +1,9 @@
 package app
 
 import (
-	"log"
+	"log/slog"
 	"os"
+	"sync"
 )
 
 type Config struct {
@@ -12,11 +13,14 @@ type Config struct {
 
 type Application struct {
 	Config Config
-	Logger *log.Logger
+	Logger *slog.Logger
+
+	// keep track of all background tasks so when graceful shutdown we wait for them to finish
+	wg sync.WaitGroup
 }
 
 func NewApplication(config Config) *Application {
-	logger := log.New(os.Stdout, "", log.Ldate|log.Ltime)
+	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
 	return &Application{
 		Logger: logger,
 		Config: config,
