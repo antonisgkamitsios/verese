@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"fmt"
 	"net/http"
 	"time"
 
@@ -42,9 +43,7 @@ func (m *MiddleWare) RecoverPanic(next http.Handler) http.Handler {
 
 			if err := recover(); err != nil {
 				w.Header().Set("Connection", "close")
-				// todo: add proper response
-				w.Write([]byte("oops"))
-				// app.serverError(w, r, fmt.Errorf("%s", err), true)
+				m.app.ServerError(w, r, fmt.Errorf("%s", err))
 			}
 		}()
 		next.ServeHTTP(w, r)

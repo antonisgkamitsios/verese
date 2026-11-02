@@ -8,5 +8,5 @@ import (
 
 func (h *Handlers) HomeHandler(w http.ResponseWriter, r *http.Request) {
 
-	h.render(w, r, http.StatusOK, pages.Home())
+	h.app.Render(w, r, http.StatusOK, pages.Home())
 }
