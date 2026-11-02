@@ -1,11 +1,23 @@
-package handler
+package middleware
 
 import (
 	"net/http"
 	"time"
+
+	"github.com/antonisgkamitsios/verese/app"
 )
 
-func (h *Handlers) LoggerWrapper(next http.Handler) http.Handler {
+type MiddleWare struct {
+	app *app.Application
+}
+
+func New(app *app.Application) *MiddleWare {
+	return &MiddleWare{
+		app: app,
+	}
+}
+
+func (m *MiddleWare) LoggerWrapper(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var (
 			ip     = r.RemoteAddr
@@ -15,7 +27,7 @@ func (h *Handlers) LoggerWrapper(next http.Handler) http.Handler {
 		)
 		now := time.Now()
 		next.ServeHTTP(w, r)
-		h.app.Logger.Info("request received",
+		m.app.Logger.Info("request received",
 			"proto", proto,
 			"ip", ip,
 			"method", method,
@@ -24,7 +36,7 @@ func (h *Handlers) LoggerWrapper(next http.Handler) http.Handler {
 	})
 }
 
-func (h *Handlers) RecoverPanic(next http.Handler) http.Handler {
+func (m *MiddleWare) RecoverPanic(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		defer func() {
 
@@ -39,8 +51,8 @@ func (h *Handlers) RecoverPanic(next http.Handler) http.Handler {
 	})
 }
 
-func (h *Handlers) DisableCacheInDevMode(next http.Handler) http.Handler {
-	if h.app.Config.Env != "development" {
+func (m *MiddleWare) DisableCacheInDevMode(next http.Handler) http.Handler {
+	if m.app.Config.Env != "development" {
 		return next
 	}
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -52,8 +64,8 @@ func (h *Handlers) DisableCacheInDevMode(next http.Handler) http.Handler {
 	})
 }
 
-func (h *Handlers) CacheStaticFilesInProd(next http.Handler) http.Handler {
-	if h.app.Config.Env != "production" {
+func (m *MiddleWare) CacheStaticFilesInProd(next http.Handler) http.Handler {
+	if m.app.Config.Env != "production" {
 		return next
 	}
 
