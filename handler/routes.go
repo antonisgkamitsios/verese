@@ -15,6 +15,8 @@ func (h *Handlers) SetupRoutes() http.Handler {
 
 	r.Use(m.RecoverPanic, m.LoggerWrapper)
 
+	r.NotFound(h.notFoundHandler)
+
 	r.Group(func(r chi.Router) {
 		r.Use(m.CacheStaticFilesInProd, m.DisableCacheInDevMode)
 		r.Method("GET", "/static/*", http.StripPrefix("/static", static.StaticFileServer()))

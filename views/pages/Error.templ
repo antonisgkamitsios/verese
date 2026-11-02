@@ -1,0 +1,13 @@
+package pages
+
+import "github.com/antonisgkamitsios/verese/views/layout"
+
+templ Error(title, msg string) {
+	@layout.Base(title) {
+		<div class="container mx-auto my-12">
+			<div class="py-12 px-4 border p-11 text-center text-2xl">
+				{ msg }
+			</div>
+		</div>
+	}
+}
