@@ -1,6 +1,7 @@
 package app
 
 import (
+	"fmt"
 	"log/slog"
 	"os"
 	"sync"
@@ -25,4 +26,14 @@ func NewApplication(config Config) *Application {
 		Logger: logger,
 		Config: config,
 	}
+}
+
+func (app *Application) Background(fn func()) {
+	app.wg.Go(func() {
+		defer func() {
+			if err := recover(); err != nil {
+				app.Logger.Error(fmt.Sprintf("%v", err))
+			}
+		}()
+	})
 }
