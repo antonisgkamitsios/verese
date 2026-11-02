@@ -11,6 +11,7 @@ func main() {
 	var config app.Config
 
 	config.Port = 6969
+	config.Env = "development"
 
 	app := app.NewApplication(config)
 	handlers := handler.New(app)
