@@ -1,4 +1,5 @@
 node_modules
 static/style.css
+static/index.js
 tmp
 *_templ.go

@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/antonisgkamitsios/verese/middleware"
+	"github.com/antonisgkamitsios/verese/static"
 	"github.com/go-chi/chi/v5"
 )
 
@@ -16,7 +17,7 @@ func (h *Handlers) SetupRoutes() http.Handler {
 
 	r.Group(func(r chi.Router) {
 		r.Use(m.CacheStaticFilesInProd, m.DisableCacheInDevMode)
-		r.Method("GET", "/static/*", http.StripPrefix("/static", http.FileServer(http.Dir("./static"))))
+		r.Method("GET", "/static/*", http.StripPrefix("/static", static.StaticFileServer()))
 	})
 	r.Get("/", h.HomeHandler)
 
