@@ -1,13 +1,15 @@
 package layout
 
+import "github.com/antonisgkamitsios/verese/static"
+
 templ Base(title string) {
 	<!DOCTYPE html>
 	<html lang="en">
 		<head>
 			<meta charset="UTF-8"/>
 			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-			<link href="static/style.css" rel="stylesheet"/>
-			<script data-track="reload" src="static/index.js" type="text/javascript"></script>
+			<link href={ static.FilePath("style.css") } rel="stylesheet"/>
+			<script data-track="reload" src={ static.FilePath("index.js") } type="text/javascript"></script>
 			<script src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.11/dist/htmx.min.js" integrity="sha384-2OatzQy1H+Zd/IIrjr1TcuDGqLXeHhbooAyJY1KdQMKnr4LZ22k31GBLdYKHmVjg" crossorigin="anonymous"></script>
 			<title>{ title }</title>
 		</head>

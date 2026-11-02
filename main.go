@@ -5,6 +5,7 @@ import (
 
 	"github.com/antonisgkamitsios/verese/app"
 	"github.com/antonisgkamitsios/verese/handler"
+	"github.com/antonisgkamitsios/verese/static"
 )
 
 func main() {
@@ -15,6 +16,8 @@ func main() {
 
 	app := app.NewApplication(config)
 	handlers := handler.New(app)
+
+	static.GenerateHashesForStaticFiles()
 
 	err := app.Serve(handlers.SetupRoutes())
 
