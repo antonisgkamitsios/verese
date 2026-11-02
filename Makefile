@@ -8,7 +8,7 @@ live/server:
 	--build.stop_on_error "false" \
 	--misc.clean_on_exit true
 live/tailwind:
-	npx --yes @tailwindcss/cli -i ./assets/css/input.css -o ./static/output.css --minify --watch=always
+	npx --yes @tailwindcss/cli -i ./assets/css/input.css -o ./static/style.css --minify --watch=always
 live/sync_assets:
 	go run github.com/air-verse/air@v1.63.0 \
 	--build.cmd "go tool templ generate --notify-proxy" \
