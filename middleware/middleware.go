@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/antonisgkamitsios/verese/app"
+	"github.com/antonisgkamitsios/verese/internal/htmx"
 )
 
 type MiddleWare struct {
@@ -72,5 +73,13 @@ func (m *MiddleWare) CacheStaticFilesInProd(next http.Handler) http.Handler {
 		w.Header().Set("Cache-Control", "public, max-age=31536000")
 
 		next.ServeHTTP(w, r)
+	})
+}
+
+func (m *MiddleWare) ComesFromHtmx(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		isHtmxRequest := r.Header.Get("Hx-Request") != ""
+
+		next.ServeHTTP(w, htmx.ContextSetHtmxRequest(r, isHtmxRequest))
 	})
 }

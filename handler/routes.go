@@ -12,8 +12,7 @@ func (h *Handlers) SetupRoutes() http.Handler {
 	r := chi.NewRouter()
 
 	m := middleware.New(h.app)
-
-	r.Use(m.RecoverPanic, m.LoggerWrapper)
+	r.Use(m.RecoverPanic, m.LoggerWrapper, m.ComesFromHtmx)
 
 	r.NotFound(h.NotFoundHandler)
 

@@ -1,0 +1,72 @@
+package layout
+
+var links = []struct {
+	name string
+	href string
+}{
+	{name: "Αρχική", href: "/"},
+	{name: "Υπηρεσίες", href: "/services"},
+	{name: "Ποιοι είμαστε", href: "/about"},
+	{name: "Επικοινωνία", href: "/contact"},
+}
+
+templ Header() {
+	<header class="border-b border-harvest-gold-400">
+		<div class="container mx-auto flex flex-col justify-between items-center">
+			<nav
+				class="flex justify-end gap-4 px-4"
+				hx-boost:inherited="true"
+				hx-target:inherited="#contents"
+				hx-swap:inherited="outerHTML show:no-scroll"
+			>
+				for _, link := range links {
+					<a
+						class="py-4 px-1 relative
+                flex items-center text-center
+              hover:text-harvest-gold-200
+              [&.active]:text-harvest-gold-300 
+                [&.active]:before:scale-x-100
+                [&.active]:before:bg-harvest-gold-700
+                 before:content-[''] 
+                before:absolute before:bottom-0 
+                before:left-0 before:h-0.5 
+                before:bg-harvest-gold-400 
+                before:w-full
+                before:scale-x-0
+                before:transition-all
+                before:duration-420"
+						href={ templ.URL(link.href) }
+						hx-push-url="true"
+					>{ link.name }</a>
+				}
+				<script type="text/javascript">
+					function styleLinks() {
+						const nav = document.currentScript.closest('nav')
+						const navLinks = nav.querySelectorAll("a");
+
+						const toggleClass = (pathName) => {
+							for (let i = 0; i < navLinks.length; i++) {
+								var link = navLinks[i]
+								if (link.getAttribute('href') == pathName) {
+									link.classList.add("active");
+								} else {
+									link.classList.remove("active")
+								}
+							}
+						}
+						document.addEventListener('htmx:pushedIntoHistory', (e) => {
+							toggleClass(e.detail.path)
+						});
+
+						document.addEventListener('htmx:historyRestore', (e) => {
+							toggleClass(e.detail.path)
+						});
+
+						toggleClass(window.location.pathname)
+					}
+					styleLinks()
+				</script>
+			</nav>
+		</div>
+	</header>
+}
