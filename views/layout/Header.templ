@@ -54,13 +54,13 @@ templ Header() {
 								}
 							}
 						}
-						document.addEventListener('htmx:pushedIntoHistory', (e) => {
+						document.addEventListener('htmx:after:history:push', (e) => {
 							toggleClass(e.detail.path)
 						});
 
-						document.addEventListener('htmx:historyRestore', (e) => {
+						document.addEventListener('htmx:before:history:restore', (e) => {
 							toggleClass(e.detail.path)
-						});
+						}, {once: true});
 
 						toggleClass(window.location.pathname)
 					}
