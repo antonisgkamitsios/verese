@@ -2,6 +2,7 @@ package main
 
 import (
 	"os"
+	"time"
 
 	"github.com/antonisgkamitsios/verese/app"
 	"github.com/antonisgkamitsios/verese/handler"
@@ -14,7 +15,12 @@ func main() {
 	config.Port = 6969
 	config.Env = "development"
 
-	app := app.NewApplication(config)
+	config.Db.Dsn = "postgres://greenlight:pass@localhost/greenlight"
+	config.Db.MaxConns = 25
+	config.Db.MaxIdleTime = 15 * time.Minute
+
+	app, close := app.NewApplication(config)
+	defer close()
 	handlers := handler.New(app)
 
 	static.GenerateHashesForStaticFiles()
