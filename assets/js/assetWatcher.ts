@@ -1,7 +1,11 @@
-import { parseHTML } from './helper.ts';
 import { HTMXBeforeSwapDetail } from './types';
 
 const ASSETS_SELECTOR = `[data-track="reload"]`;
+
+ function parseHTML(str: string) {
+  const parser = new DOMParser();
+  return parser.parseFromString(str, 'text/html');
+}
 
 /**
  * assetWatcher listens to all htmx:before:swap events and checks if the current head's
