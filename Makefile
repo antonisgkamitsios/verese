@@ -29,6 +29,7 @@ live/sync_assets:
 	go run github.com/air-verse/air@v1.63.0 \
 	--build.cmd "go tool templ generate --notify-proxy" \
 	--build.bin "true" \
+	--build.stop_on_error "false" \
 	--build.delay "100" \
 	--build.exclude_dir "" \
 	--build.include_dir "static" \
