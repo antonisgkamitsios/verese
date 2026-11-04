@@ -4,7 +4,7 @@ import { HTMXBeforeSwapDetail } from './types';
 const ASSETS_SELECTOR = `[data-track="reload"]`;
 
 /**
- * assetWatcher listens to all htmx:beforeSwap events and checks if the current head's
+ * assetWatcher listens to all htmx:before:swap events and checks if the current head's
  * elements tagged with `data-track="reload"` are equal with the response's head element tagged
  * with this attribute.
  * This is to make sure that we have the most current version of an asset in a case we are already on a page
@@ -12,15 +12,9 @@ const ASSETS_SELECTOR = `[data-track="reload"]`;
  */
 function assetsWatcher() {
   const stopSwapAndReload = (e: CustomEvent<HTMXBeforeSwapDetail>) => {
-    // e.detail.shouldSwap = false;
-    // window.location.href = e.detail.xhr.responseURL;
     e.preventDefault();
     window.location.href = e.detail.ctx.response.raw.url;
   };
-
-  document.addEventListener('htmx:historyCacheMissLoadError', () => {
-    window.location.reload();
-  });
 
   document.addEventListener('htmx:before:swap', ((e: CustomEvent<HTMXBeforeSwapDetail>) => {
     const isBoosted = e.detail.ctx.request.headers['HX-Boosted'] === 'true';
