@@ -3,3 +3,4 @@ static/style.css
 static/index.js
 tmp
 *_templ.go
+.env

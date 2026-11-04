@@ -1,4 +1,4 @@
-include .env.local
+include .env
 MIGRATIONS_DIR = ./migrations
 
 ##Command: Description: Usage
@@ -40,16 +40,30 @@ live:
 
 ## migrate_create: Creates new migration file with the current timestamp. : make migrate_create name=[name]
 migrate_create:
-	@go tool goose postgres $(DSN) -dir ${MIGRATIONS_DIR} create $(name) sql
+	@go tool goose postgres $(DB_DSN) -dir ${MIGRATIONS_DIR} create $(name) sql
 
 ## migrate_up: Migrate the DB to the most recent version available.
 migrate_up:
-	@go tool goose postgres $(DSN) -dir ${MIGRATIONS_DIR} up
+	@go tool goose postgres $(DB_DSN) -dir ${MIGRATIONS_DIR} up
 
 ## migrate_down: Roll back the version by 1.
 migrate_down:
-	@go tool goose postgres $(DSN) -dir ${MIGRATIONS_DIR} down
+	@go tool goose postgres $(DB_DSN) -dir ${MIGRATIONS_DIR} down
 
 ## migrate_status: Dump the migration status for the current DB.
 migrate_status:
-	@go tool goose postgres $(DSN) -dir ${MIGRATIONS_DIR} status
+	@go tool goose postgres $(DB_DSN) -dir ${MIGRATIONS_DIR} status
+
+build/templ:
+	go tool templ generate
+
+build/tailwind:
+	npx --yes @tailwindcss/cli -i ./assets/css/input.css -o ./static/style.css --minify
+
+build/esbuild:
+	npx esbuild --bundle assets/js/index.ts --outdir=static --global-name=bundle
+
+build/server:
+		CGO_ENABLED=0 go build -o out main.go
+
+build: build/templ build/tailwind build/esbuild build/server

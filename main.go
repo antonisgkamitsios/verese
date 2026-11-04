@@ -7,6 +7,7 @@ import (
 	"github.com/antonisgkamitsios/verese/app"
 	"github.com/antonisgkamitsios/verese/handler"
 	"github.com/antonisgkamitsios/verese/static"
+	"github.com/joho/godotenv"
 )
 
 func main() {
@@ -14,6 +15,11 @@ func main() {
 
 	config.Port = 6969
 	config.Env = "development"
+
+	err := godotenv.Load()
+	if err != nil {
+		panic("Cannot load .env file")
+	}
 
 	config.Db.Dsn = "postgres://greenlight:pass@localhost/greenlight"
 	config.Db.MaxConns = 25
@@ -25,7 +31,7 @@ func main() {
 
 	static.GenerateHashesForStaticFiles()
 
-	err := app.Serve(handlers.SetupRoutes())
+	err = app.Serve(handlers.SetupRoutes())
 
 	if err != nil {
 		app.Logger.Error(err.Error())
