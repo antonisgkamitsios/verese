@@ -4,7 +4,7 @@ MIGRATIONS_DIR = ./migrations
 ##Command: Description: Usage
 ##--------------:--------------:--------------
 
-## help: print this help message
+## help: Print this help message
 help:
 	@sed -n 's/^##//p' ${MAKEFILE_LIST} | column -t -s ':' |  sed -e 's/^/ /'
 
@@ -34,7 +34,7 @@ live/sync_assets:
 	--build.include_dir "static" \
 	--build.include_ext "js,css"
 
-## live: run the server on watch mode
+## live: Run the server on watch mode
 live: 
 	make -j5 live/templ live/server live/tailwind live/esbuild live/sync_assets
 
@@ -66,4 +66,5 @@ build/esbuild:
 build/server:
 		CGO_ENABLED=0 go build -o out main.go
 
+## build: Build the current executable.
 build: build/templ build/tailwind build/esbuild build/server
