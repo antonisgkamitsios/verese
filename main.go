@@ -21,7 +21,7 @@ func main() {
 		panic("Cannot load .env file")
 	}
 
-	config.Db.Dsn = "postgres://greenlight:pass@localhost/greenlight"
+	config.Db.Dsn = os.Getenv("DB_DSN")
 	config.Db.MaxConns = 25
 	config.Db.MaxIdleTime = 15 * time.Minute
 
