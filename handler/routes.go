@@ -22,5 +22,8 @@ func (h *Handlers) SetupRoutes() http.Handler {
 	})
 	r.Get("/", h.Home)
 
+	r.Get("/register", h.Register)
+	r.Post("/register", h.RegisterPost)
+
 	return r
 }

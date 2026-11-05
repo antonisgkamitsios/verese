@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 	"time"
@@ -83,13 +84,14 @@ func (m *MiddleWare) Csrf(next http.Handler) http.Handler {
 	n := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		token := nosurf.Token(r)
 		ctx := context.WithValue(r.Context(), csrf.CSRFContextKey, token)
-
-		r = r.WithContext(ctx)
-
-		next.ServeHTTP(w, r)
+		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 
 	csrfHandler := nosurf.New(n)
+	csrfHandler.SetFailureHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		m.app.LogError(r, errors.New("csrf token missing"))
+		m.app.ClientError(w, r, http.StatusBadRequest, "csrf token is missing")
+	}))
 	csrfHandler.SetBaseCookie(http.Cookie{
 		HttpOnly: true,
 		Path:     "/",
