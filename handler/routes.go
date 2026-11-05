@@ -12,7 +12,7 @@ func (h *Handlers) SetupRoutes() http.Handler {
 	r := chi.NewRouter()
 
 	m := middleware.New(h.app)
-	r.Use(m.RecoverPanic, m.LoggerWrapper, m.ComesFromHtmx)
+	r.Use(m.RecoverPanic, m.LoggerWrapper, m.ComesFromHtmx, m.Csrf)
 
 	r.NotFound(h.NotFoundHandler)
 
@@ -20,7 +20,7 @@ func (h *Handlers) SetupRoutes() http.Handler {
 		r.Use(m.CacheStaticFilesInProd, m.DisableCacheInDevMode)
 		r.Method("GET", "/static/*", http.StripPrefix("/static", static.StaticFileServer()))
 	})
-	r.Get("/", h.HomeHandler)
+	r.Get("/", h.Home)
 
 	return r
 }

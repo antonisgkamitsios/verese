@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/antonisgkamitsios/verese/internal/models"
+	"github.com/go-playground/form/v4"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -23,9 +24,10 @@ type Config struct {
 }
 
 type Application struct {
-	Config Config
-	Logger *slog.Logger
-	Models models.Models
+	Config      Config
+	Logger      *slog.Logger
+	Models      models.Models
+	FormDecoder *form.Decoder
 
 	// keep track of all background tasks so when graceful shutdown we wait for them to finish
 	wg sync.WaitGroup
@@ -41,9 +43,10 @@ func NewApplication(config Config) (*Application, func()) {
 	logger.Info("database connection pool established")
 
 	application := &Application{
-		Logger: logger,
-		Config: config,
-		Models: models.NewModels(db),
+		Logger:      logger,
+		Config:      config,
+		Models:      models.NewModels(db),
+		FormDecoder: form.NewDecoder(),
 	}
 
 	return application, db.Close

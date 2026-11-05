@@ -1,0 +1,55 @@
+package validator
+
+import (
+	"net/mail"
+	"slices"
+)
+
+type Validator struct {
+	Errors Error
+}
+
+type Error map[string]string
+
+func New() *Validator {
+	return &Validator{Errors: make(Error)}
+}
+
+func (v *Validator) Valid() bool {
+	return len(v.Errors) == 0
+}
+
+func (v *Validator) AddError(key, message string) {
+	if v.Errors == nil {
+		v.Errors = make(Error)
+	}
+
+	if _, exists := v.Errors[key]; !exists {
+		v.Errors[key] = message
+	}
+}
+
+func (v *Validator) Check(ok bool, key, message string) {
+	if !ok {
+		v.AddError(key, message)
+	}
+}
+
+func PermittedValue[T comparable](value T, permittedValues ...T) bool {
+	return slices.Contains(permittedValues, value)
+}
+
+func Unique[T comparable](values []T) bool {
+	uniqueValues := make(map[T]bool)
+
+	for _, value := range values {
+		uniqueValues[value] = true
+	}
+
+	return len(values) == len(uniqueValues)
+}
+
+func ValidMail(value string) bool {
+	_, err := mail.ParseAddress(value)
+	return err == nil
+}

@@ -1,12 +1,15 @@
 package middleware
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"time"
 
 	"github.com/antonisgkamitsios/verese/app"
+	"github.com/antonisgkamitsios/verese/internal/csrf"
 	"github.com/antonisgkamitsios/verese/internal/htmx"
+	"github.com/justinas/nosurf"
 )
 
 type MiddleWare struct {
@@ -74,6 +77,26 @@ func (m *MiddleWare) CacheStaticFilesInProd(next http.Handler) http.Handler {
 
 		next.ServeHTTP(w, r)
 	})
+}
+
+func (m *MiddleWare) Csrf(next http.Handler) http.Handler {
+	n := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		token := nosurf.Token(r)
+		ctx := context.WithValue(r.Context(), csrf.CSRFContextKey, token)
+
+		r = r.WithContext(ctx)
+
+		next.ServeHTTP(w, r)
+	})
+
+	csrfHandler := nosurf.New(n)
+	csrfHandler.SetBaseCookie(http.Cookie{
+		HttpOnly: true,
+		Path:     "/",
+		Secure:   true,
+	})
+
+	return csrfHandler
 }
 
 func (m *MiddleWare) ComesFromHtmx(next http.Handler) http.Handler {
