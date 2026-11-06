@@ -1,26 +1,26 @@
 package app
 
 import (
-	"context"
 	"fmt"
 	"log/slog"
 	"os"
 	"sync"
-	"time"
 
+	"github.com/antonisgkamitsios/verese/internal/database"
 	"github.com/antonisgkamitsios/verese/internal/models"
 	"github.com/go-playground/form/v4"
-	"github.com/jackc/pgx/v5/pgxpool"
+)
+
+const (
+	EnvDevelopment = "developlmen"
+	EnvProduction  = "production"
+	EnvTesting     = "testing"
 )
 
 type Config struct {
 	Port int
 	Env  string
-	Db   struct {
-		Dsn         string
-		MaxConns    int
-		MaxIdleTime time.Duration
-	}
+	Db   database.Config
 }
 
 type Application struct {
@@ -36,7 +36,7 @@ type Application struct {
 func NewApplication(config Config) (*Application, func()) {
 	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
 
-	db, err := openDB(config)
+	db, err := database.OpenDB(config.Db)
 	if err != nil {
 		panic(err)
 	}
@@ -60,28 +60,4 @@ func (app *Application) Background(fn func()) {
 			}
 		}()
 	})
-}
-
-func openDB(config Config) (*pgxpool.Pool, error) {
-	poolConfig, err := pgxpool.ParseConfig(config.Db.Dsn)
-	if err != nil {
-		return nil, err
-	}
-	poolConfig.MaxConns = int32(config.Db.MaxConns)
-	poolConfig.MaxConnIdleTime = config.Db.MaxIdleTime
-
-	db, err := pgxpool.NewWithConfig(context.Background(), poolConfig)
-	if err != nil {
-		return nil, err
-	}
-
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-
-	err = db.Ping(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	return db, nil
 }

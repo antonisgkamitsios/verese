@@ -56,7 +56,7 @@ func (m *MiddleWare) RecoverPanic(next http.Handler) http.Handler {
 }
 
 func (m *MiddleWare) DisableCacheInDevMode(next http.Handler) http.Handler {
-	if m.app.Config.Env != "development" {
+	if m.app.Config.Env != app.EnvDevelopment {
 		return next
 	}
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -69,7 +69,7 @@ func (m *MiddleWare) DisableCacheInDevMode(next http.Handler) http.Handler {
 }
 
 func (m *MiddleWare) CacheStaticFilesInProd(next http.Handler) http.Handler {
-	if m.app.Config.Env != "production" {
+	if m.app.Config.Env != app.EnvProduction {
 		return next
 	}
 
