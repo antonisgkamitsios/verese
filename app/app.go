@@ -7,6 +7,7 @@ import (
 	"sync"
 
 	"github.com/antonisgkamitsios/verese/internal/database"
+	"github.com/antonisgkamitsios/verese/internal/mailer"
 	"github.com/antonisgkamitsios/verese/internal/models"
 	"github.com/go-playground/form/v4"
 )
@@ -21,6 +22,7 @@ type Config struct {
 	Port int
 	Env  string
 	Db   database.Config
+	Smtp mailer.Config
 }
 
 type Application struct {
@@ -28,6 +30,7 @@ type Application struct {
 	Logger      *slog.Logger
 	Models      models.Models
 	FormDecoder *form.Decoder
+	Mailer      mailer.Mailer
 
 	// keep track of all background tasks so when graceful shutdown we wait for them to finish
 	wg sync.WaitGroup
@@ -47,6 +50,7 @@ func NewApplication(config Config) (*Application, func()) {
 		Config:      config,
 		Models:      models.NewModels(db),
 		FormDecoder: form.NewDecoder(),
+		Mailer:      mailer.New(config.Smtp),
 	}
 
 	return application, db.Close
@@ -54,10 +58,13 @@ func NewApplication(config Config) (*Application, func()) {
 
 func (app *Application) Background(fn func()) {
 	app.wg.Go(func() {
+
 		defer func() {
 			if err := recover(); err != nil {
 				app.Logger.Error(fmt.Sprintf("%v", err))
 			}
 		}()
+
+		fn()
 	})
 }

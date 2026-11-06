@@ -1,9 +1,11 @@
 package handler
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/antonisgkamitsios/verese/internal/models"
+	"github.com/antonisgkamitsios/verese/views/mail"
 	"github.com/antonisgkamitsios/verese/views/pages"
 )
 
@@ -45,6 +47,15 @@ func (h *Handlers) RegisterPost(w http.ResponseWriter, r *http.Request) {
 		h.app.Render(w, r, http.StatusUnprocessableEntity, pages.RegisterForm(user))
 		return
 	}
+
+	h.app.Background(func() {
+		err = h.app.Mailer.Send(user.Email, "Welcome lover", mail.Hello(user))
+		if err != nil {
+			h.app.Logger.Error(fmt.Sprintf("Error sending email %v", err))
+		} else {
+			h.app.Logger.Info("message sent successfully")
+		}
+	})
 
 	h.app.Redirect(w, r, "/")
 }
