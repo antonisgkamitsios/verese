@@ -14,7 +14,7 @@ func main() {
 	var config app.Config
 
 	config.Port = 6969
-	config.Env = "development"
+	config.Env = app.EnvDevelopment
 
 	err := godotenv.Load()
 	if err != nil {
