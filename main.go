@@ -26,9 +26,9 @@ func main() {
 	config.Db.MaxIdleTime = 15 * time.Minute
 
 	config.Smtp.BaseMail = "info@panagia.gr"
-	config.Smtp.Host = "sandbox.smtp.mailtrap.io"
-	config.Smtp.Username = "8f0d73e77ba826"
-	config.Smtp.Password = "848feda30803fb"
+	config.Smtp.Host = os.Getenv("SMTP_HOST")
+	config.Smtp.Username = os.Getenv("SMTP_USERNAME")
+	config.Smtp.Password = os.Getenv("SMTP_PASSWORD")
 
 	app, close := app.NewApplication(config)
 	defer close()
