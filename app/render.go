@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/a-h/templ"
+	"github.com/antonisgkamitsios/verese/internal/htmx"
 	"github.com/antonisgkamitsios/verese/views/pages"
 )
 
@@ -37,4 +38,14 @@ func (app *Application) ClientError(w http.ResponseWriter, r *http.Request, stat
 	w.Header().Add("Vary", "HX-Retarget")
 
 	app.Render(w, r, status, pages.Error(http.StatusText(status), message))
+}
+
+func (app *Application) Redirect(w http.ResponseWriter, r *http.Request, location string) {
+	if htmx.ContextGetHtmxRequest(r.Context()) {
+		w.Header().Add("Hx-Redirect", "/")
+		w.WriteHeader(http.StatusOK)
+		return
+	}
+
+	http.Redirect(w, r, location, http.StatusFound)
 }

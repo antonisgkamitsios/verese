@@ -1,0 +1,94 @@
+package pages
+
+import "github.com/antonisgkamitsios/verese/views/layout"
+import "github.com/antonisgkamitsios/verese/internal/csrf"
+import "github.com/antonisgkamitsios/verese/internal/models"
+
+templ Register(user models.User) {
+	@layout.Base("register") {
+		@RegisterForm(user)
+	}
+}
+
+templ RegisterForm(user models.User) {
+	<form hx-post="/register" hx-swap="outerHTML" hx-indicator="#submit-btn" hx-disabled-elt="#submit-btn">
+		<input type="hidden" name="csrf_token" value={ csrf.GetCSRF(ctx) }/>
+		<div class={ "group mb-4", templ.KV("error", user.Errors["name"] != "") }>
+			<label for="name">Name</label>
+			<input
+				id="name"
+				type="text"
+				name="name"
+				value={ user.Name }
+				class="w-full p-3 rounded-lg bg-shark-900 border border-shark-500 group-[.error]:border-red-500 focus:border-harvest-gold-400 outline-none"
+			/>
+			if val, exists := user.Errors["name"]; exists {
+				<div class="text-red-500 error pt-1">
+					{ val }
+				</div>
+			}
+		</div>
+		<div class={ "group mb-4", templ.KV("error", user.Errors["email"] != "") }>
+			<label for="email">Email</label>
+			<input
+				id="email"
+				type="email"
+				name="email"
+				value={ user.Email }
+				class="w-full p-3 rounded-lg bg-shark-900 border border-shark-500 group-[.error]:border-red-500 focus:border-harvest-gold-400 outline-none"
+			/>
+			if val, exists := user.Errors["email"]; exists {
+				<div class="text-red-500 error pt-1">
+					{ val }
+				</div>
+			}
+		</div>
+		<div class={ "group mb-4", templ.KV("error", user.Errors["password"] != "") }>
+			<label for="password">Password</label>
+			<input
+				id="password"
+				type="password"
+				name="password"
+				class="w-full p-3 rounded-lg bg-shark-900 border border-shark-500 group-[.error]:border-red-500 focus:border-harvest-gold-400 outline-none"
+			/>
+			if val, exists := user.Errors["password"]; exists {
+				<div class="text-red-500 error pt-1">
+					{ val }
+				</div>
+			}
+		</div>
+		<div class={ "group mb-4", templ.KV("error", user.Errors["passwordRepeat"] != "") }>
+			<label for="passwordRepeat">Password repeat</label>
+			<input
+				id="passwordRepeat"
+				type="password"
+				name="passwordRepeat"
+				class="w-full p-3 rounded-lg bg-shark-900 border border-shark-500 group-[.error]:border-red-500 focus:border-harvest-gold-400 outline-none"
+			/>
+			if val, exists := user.Errors["passwordRepeat"]; exists {
+				<div class="text-red-500 error pt-1">
+					{ val }
+				</div>
+			}
+		</div>
+		<button
+			id="submit-btn"
+			type="submit"
+			class="group w-full py-3 rounded-lg 
+      bg-harvest-gold-400 
+      text-shark-950 
+      font-bold 
+      hover:bg-harvest-gold-300
+      htmx-request:bg-harvest-gold-200
+      htmx-request:pointer-events-none 
+      htmx-request:cursor-not-allowed"
+		>
+			<span class="block group-htmx-request:hidden leading-8">
+				Αποστολή
+			</span>
+			<span class="hidden group-htmx-request:flex justify-center">
+				Loading
+			</span>
+		</button>
+	</form>
+}
