@@ -6,9 +6,11 @@ import (
 	"os"
 	"sync"
 
+	"github.com/alexedwards/scs/v2"
 	"github.com/antonisgkamitsios/verese/internal/database"
 	"github.com/antonisgkamitsios/verese/internal/mailer"
 	"github.com/antonisgkamitsios/verese/internal/models"
+	"github.com/antonisgkamitsios/verese/internal/session"
 	"github.com/go-playground/form/v4"
 )
 
@@ -27,10 +29,11 @@ type Config struct {
 
 type Application struct {
 	Config      Config
-	Logger      *slog.Logger
-	Models      models.Models
 	FormDecoder *form.Decoder
+	Logger      *slog.Logger
 	Mailer      mailer.Mailer
+	Models      models.Models
+	Session     *scs.SessionManager
 
 	// keep track of all background tasks so when graceful shutdown we wait for them to finish
 	wg sync.WaitGroup
@@ -46,11 +49,12 @@ func NewApplication(config Config) (*Application, func()) {
 	logger.Info("database connection pool established")
 
 	application := &Application{
-		Logger:      logger,
 		Config:      config,
-		Models:      models.NewModels(db),
 		FormDecoder: form.NewDecoder(),
+		Logger:      logger,
 		Mailer:      mailer.New(config.Smtp),
+		Models:      models.NewModels(db),
+		Session:     session.NewSessionManager(db),
 	}
 
 	return application, db.Close
