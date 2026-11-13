@@ -4,13 +4,14 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/antonisgkamitsios/verese/internal/csrf"
+	"github.com/antonisgkamitsios/verese/internal/models"
 	"github.com/antonisgkamitsios/verese/views/pages"
 )
 
 func (h *Handlers) Home(w http.ResponseWriter, r *http.Request) {
 
-	val := r.Context().Value(csrf.CSRFContextKey).(string)
-	fmt.Printf("CSRF: %s\n", val)
+	user := r.Context().Value("user").(*models.User)
+	fmt.Printf("user: %+v\n", user)
+
 	h.app.Render(w, r, http.StatusOK, pages.Home())
 }

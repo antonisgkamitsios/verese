@@ -92,3 +92,63 @@ templ RegisterForm(user models.User) {
 		</button>
 	</form>
 }
+
+templ Login(form models.LoginForm) {
+	@layout.Base("login") {
+		@LoginForm(form)
+	}
+}
+
+templ LoginForm(form models.LoginForm) {
+	<form hx-post="/login" hx-swap="outerHTML" hx-indicator="#login-btn" hx-disabled-elt="#login-btn">
+		<input type="hidden" name="csrf_token" value={ csrf.GetCSRF(ctx) }/>
+		<div class={ "group mb-4", templ.KV("error", form.Errors["email"] != "") }>
+			<label for="email">Email</label>
+			<input
+				id="email"
+				type="email"
+				name="email"
+				value={ form.Email }
+				class="w-full p-3 rounded-lg bg-shark-900 border border-shark-500 group-[.error]:border-red-500 focus:border-harvest-gold-400 outline-none"
+			/>
+			if val, exists := form.Errors["email"]; exists {
+				<div class="text-red-500 error pt-1">
+					{ val }
+				</div>
+			}
+		</div>
+		<div class={ "group mb-4", templ.KV("error", form.Errors["password"] != "") }>
+			<label for="password">Password</label>
+			<input
+				id="password"
+				type="password"
+				name="password"
+				class="w-full p-3 rounded-lg bg-shark-900 border border-shark-500 group-[.error]:border-red-500 focus:border-harvest-gold-400 outline-none"
+			/>
+			if val, exists := form.Errors["password"]; exists {
+				<div class="text-red-500 error pt-1">
+					{ val }
+				</div>
+			}
+		</div>
+		<button
+			id="login-btn"
+			type="submit"
+			class="group w-full py-3 rounded-lg 
+      bg-harvest-gold-400 
+      text-shark-950 
+      font-bold 
+      hover:bg-harvest-gold-300
+      htmx-request:bg-harvest-gold-200
+      htmx-request:pointer-events-none 
+      htmx-request:cursor-not-allowed"
+		>
+			<span class="block group-htmx-request:hidden leading-8">
+				Login
+			</span>
+			<span class="hidden group-htmx-request:flex justify-center">
+				Loading
+			</span>
+		</button>
+	</form>
+}

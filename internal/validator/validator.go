@@ -3,6 +3,7 @@ package validator
 import (
 	"net/mail"
 	"slices"
+	"strings"
 )
 
 type Validator struct {
@@ -33,6 +34,14 @@ func (v *Validator) Check(ok bool, key, message string) {
 	if !ok {
 		v.AddError(key, message)
 	}
+}
+
+func FieldsEqual(value1, value2 string) bool {
+	return value1 == value2
+}
+
+func NotBlank(value string) bool {
+	return strings.TrimSpace(value) != ""
 }
 
 func PermittedValue[T comparable](value T, permittedValues ...T) bool {

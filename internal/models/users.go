@@ -65,14 +65,14 @@ func (p *password) Matches(plaintextPassword string) (bool, error) {
 }
 
 func (u *User) Validate() {
-	u.Check(u.Name != "", "name", "must be provided")
+	u.Check(validator.NotBlank(u.Name), "name", "must be provided")
 	u.Check(len(u.Name) <= 500, "name", "must be less than 500 bytes long")
 
-	u.Check(u.Email != "", "email", "must be provided")
+	u.Check(validator.NotBlank(u.Email), "email", "must be provided")
 	u.Check(validator.ValidMail(u.Email), "email", "must be a valid email address")
 
 	if u.Password.plaintext != nil {
-		u.Check(*u.Password.plaintext != "", "password", "must be provided")
+		u.Check(validator.NotBlank(*u.Password.plaintext), "password", "must be provided")
 		u.Check(len(*u.Password.plaintext) >= 8, "password", "must be at least 8 bytes long")
 		u.Check(len(*u.Password.plaintext) <= 72, "password", "must be less than 72 bytes long")
 	}
@@ -80,4 +80,18 @@ func (u *User) Validate() {
 	if u.Password.hash == nil {
 		panic("missing password hash for user")
 	}
+}
+
+type LoginForm struct {
+	Email    string `form:"email"`
+	Password string `form:"password"`
+
+	validator.Validator `form:"-"`
+}
+
+func (f *LoginForm) Validate() {
+	f.Check(validator.NotBlank(f.Email), "email", "must be provided")
+	f.Check(validator.ValidMail(f.Email), "email", "must be a valid email address")
+
+	f.Check(validator.NotBlank(f.Password), "password", "must be provided")
 }

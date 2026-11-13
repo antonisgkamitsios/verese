@@ -59,3 +59,28 @@ func (h *Handlers) RegisterPost(w http.ResponseWriter, r *http.Request) {
 
 	h.app.Redirect(w, r, "/")
 }
+
+func (h *Handlers) Login(w http.ResponseWriter, r *http.Request) {
+
+	h.app.Render(w, r, http.StatusOK, pages.Login(models.LoginForm{}))
+}
+func (h *Handlers) LoginPost(w http.ResponseWriter, r *http.Request) {
+
+	var form models.LoginForm
+	err := h.app.DecodeForm(r, &form)
+	if err != nil {
+		h.app.ServerError(w, r, err)
+		return
+	}
+	fmt.Printf("Form: %+v\n", form)
+	form.Validate()
+	if !form.Valid() {
+		h.app.Render(w, r, http.StatusUnprocessableEntity, pages.LoginForm(form))
+		return
+	}
+
+	// todo add real user check
+	h.app.Session.Put(r.Context(), "user_id", 69)
+
+	h.app.Redirect(w, r, "/")
+}

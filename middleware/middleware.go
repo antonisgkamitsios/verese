@@ -10,6 +10,7 @@ import (
 	"github.com/antonisgkamitsios/verese/app"
 	"github.com/antonisgkamitsios/verese/internal/csrf"
 	"github.com/antonisgkamitsios/verese/internal/htmx"
+	"github.com/antonisgkamitsios/verese/internal/models"
 	"github.com/justinas/nosurf"
 )
 
@@ -106,5 +107,29 @@ func (m *MiddleWare) ComesFromHtmx(next http.Handler) http.Handler {
 		isHtmxRequest := r.Header.Get("Hx-Request") != ""
 
 		next.ServeHTTP(w, htmx.ContextSetHtmxRequest(r, isHtmxRequest))
+	})
+}
+
+func (m *MiddleWare) Authenticate(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		userId := m.app.Session.GetInt(r.Context(), "user_id")
+		if userId == 0 {
+			r = r.WithContext(context.WithValue(r.Context(), "user", models.AnonymousUser))
+			next.ServeHTTP(w, r)
+			return
+		}
+
+		// check if user exists in the db
+		// and if exists add it to the context
+
+		user := models.User{
+			ID:    int64(userId),
+			Name:  "Foo",
+			Email: "foo@mail.com",
+		}
+
+		ctx := context.WithValue(r.Context(), "user", &user)
+
+		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }

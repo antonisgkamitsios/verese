@@ -13,7 +13,7 @@ func (h *Handlers) SetupRoutes() http.Handler {
 
 	m := middleware.New(h.app)
 	// `m.ComesFromHtmx` needs to come before `m.RecoverPanic` because the second uses the first
-	r.Use(m.ComesFromHtmx, m.RecoverPanic, m.LoggerWrapper, m.Csrf, h.app.Session.LoadAndSave)
+	r.Use(m.ComesFromHtmx, m.RecoverPanic, m.LoggerWrapper, m.Csrf, h.app.Session.LoadAndSave, m.Authenticate)
 
 	r.NotFound(h.NotFoundHandler)
 
@@ -25,6 +25,9 @@ func (h *Handlers) SetupRoutes() http.Handler {
 
 	r.Get("/register", h.Register)
 	r.Post("/register", h.RegisterPost)
+
+	r.Get("/login", h.Login)
+	r.Post("/login", h.LoginPost)
 
 	return r
 }
