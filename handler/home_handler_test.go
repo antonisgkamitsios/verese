@@ -14,8 +14,8 @@ func TestHome(t *testing.T) {
 
 	res := ts.Get(t, "/", nil)
 
-	assert.Equal(t, http.StatusOK, res.Status)
-	doc := res.Document(t)
+	assert.Equal(t, http.StatusOK, res.StatusCode)
+	doc := Document(t, res)
 	title := doc.Find("h1").Text()
 	assert.Equal(t, title, "Hello mafks")
 }
