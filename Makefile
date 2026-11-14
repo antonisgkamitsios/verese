@@ -11,6 +11,16 @@ help:
 live/templ:
 	go tool templ generate --watch --proxy="http://localhost:6969" --open-browser=false -path="./views" -cmd="echo Initial generation done"
 
+live/server-debug:
+	go run github.com/air-verse/air@v1.63.0 \
+	--build.cmd "go build -tags dev -gcflags='all=-N -l' -o tmp/bin/main" \
+	--build.full_bin "dlv exec --headless --listen=127.0.0.1:2345 --api-version=2 --accept-multiclient --continue ./tmp/bin/main" \
+	--build.delay "100" \
+	--build.exclude_dir "node_modules" \
+	--build.include_ext "go" \
+	--build.stop_on_error "false" \
+	--misc.clean_on_exit true
+
 live/server:
 	go run github.com/air-verse/air@v1.63.0 \
 	--build.cmd "go build -tags dev -o tmp/bin/main" --build.bin "tmp/bin/main" --build.delay "100" \
@@ -34,6 +44,10 @@ live/sync_assets:
 	--build.exclude_dir "" \
 	--build.include_dir "static" \
 	--build.include_ext "js,css"
+
+## live/debug: Run the server on watch mode with debug information
+live/debug: 
+	make -j5 live/templ live/server-debug live/tailwind live/esbuild live/sync_assets
 
 ## live: Run the server on watch mode
 live: 
