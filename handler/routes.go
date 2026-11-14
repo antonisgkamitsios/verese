@@ -28,6 +28,7 @@ func (h *Handlers) SetupRoutes() http.Handler {
 
 	r.Get("/login", h.Login)
 	r.Post("/login", h.LoginPost)
+	r.Post("/logout", h.LogoutPost)
 
 	return r
 }

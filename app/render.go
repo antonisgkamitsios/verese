@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/a-h/templ"
-	"github.com/antonisgkamitsios/verese/internal/htmx"
+	"github.com/antonisgkamitsios/verese/internal/reqctx"
 )
 
 func (app *Application) Render(w http.ResponseWriter, r *http.Request, status int, component templ.Component) {
@@ -18,7 +18,7 @@ func (app *Application) Render(w http.ResponseWriter, r *http.Request, status in
 }
 
 func (app *Application) Redirect(w http.ResponseWriter, r *http.Request, location string) {
-	if htmx.ContextGetHtmxRequest(r.Context()) {
+	if reqctx.IsHtmx(r.Context()) {
 		w.Header().Add("Hx-Redirect", "/")
 		w.WriteHeader(http.StatusOK)
 		return

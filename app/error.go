@@ -2,6 +2,7 @@ package app
 
 import (
 	"net/http"
+	"runtime/debug"
 
 	"github.com/antonisgkamitsios/verese/views/pages"
 )
@@ -11,7 +12,7 @@ func (app *Application) LogError(r *http.Request, err error) {
 		method = r.Method
 		uri    = r.URL.RequestURI()
 	)
-	app.Logger.Error(err.Error(), "method", method, "uri", uri)
+	app.Logger.Error(err.Error(), "method", method, "uri", uri, "stack", string(debug.Stack()))
 }
 
 func (app *Application) ServerError(w http.ResponseWriter, r *http.Request, err error) {

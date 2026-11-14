@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 
@@ -48,12 +49,23 @@ func (h *Handlers) RegisterPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	err = h.app.Models.Users.Insert(&user)
+	if err != nil {
+		switch {
+		case errors.Is(err, models.ErrDuplicateEmail):
+			user.AddError("email", "this email is already in use")
+			h.app.Render(w, r, http.StatusUnprocessableEntity, pages.RegisterForm(user))
+			return
+		default:
+			h.app.ServerError(w, r, err)
+			return
+		}
+	}
+
 	h.app.Background(func() {
 		err = h.app.Mailer.Send(user.Email, "Welcome lover", mail.Hello(user))
 		if err != nil {
 			h.app.Logger.Error(fmt.Sprintf("Error sending email %v", err))
-		} else {
-			h.app.Logger.Info("message sent successfully")
 		}
 	})
 
@@ -72,15 +84,57 @@ func (h *Handlers) LoginPost(w http.ResponseWriter, r *http.Request) {
 		h.app.ServerError(w, r, err)
 		return
 	}
-	fmt.Printf("Form: %+v\n", form)
 	form.Validate()
 	if !form.Valid() {
 		h.app.Render(w, r, http.StatusUnprocessableEntity, pages.LoginForm(form))
 		return
 	}
 
-	// todo add real user check
-	h.app.Session.Put(r.Context(), "user_id", 69)
+	user, err := h.app.Models.Users.GetByEmail(form.Email)
+	if err != nil {
+		switch {
+		case errors.Is(err, models.ErrRecordNotFound):
+			form.AddNonFieldError("invalid credentials")
+			h.app.Render(w, r, http.StatusUnprocessableEntity, pages.LoginForm(form))
+			return
+		default:
+			h.app.ServerError(w, r, err)
+			return
+
+		}
+	}
+
+	passwordMatches, err := user.Password.Matches(form.Password)
+	if err != nil {
+		h.app.ServerError(w, r, err)
+		return
+	}
+	if !passwordMatches {
+		form.AddNonFieldError("invalid credentials")
+		h.app.Render(w, r, http.StatusUnprocessableEntity, pages.LoginForm(form))
+		return
+	}
+
+	err = h.app.Session.RenewToken(r.Context())
+	if err != nil {
+		h.app.ServerError(w, r, err)
+		return
+
+	}
+	h.app.Session.Put(r.Context(), "user_id", user.ID)
+
+	h.app.Redirect(w, r, "/")
+}
+
+func (h *Handlers) LogoutPost(w http.ResponseWriter, r *http.Request) {
+	err := h.app.Session.RenewToken(r.Context())
+	if err != nil {
+		h.app.ServerError(w, r, err)
+		return
+	}
+
+	h.app.Session.Remove(r.Context(), "user_id")
+	// todo when remember me is implemented here we will delete token + the cookie
 
 	h.app.Redirect(w, r, "/")
 }

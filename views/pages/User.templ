@@ -1,8 +1,8 @@
 package pages
 
 import "github.com/antonisgkamitsios/verese/views/layout"
-import "github.com/antonisgkamitsios/verese/internal/csrf"
 import "github.com/antonisgkamitsios/verese/internal/models"
+import "github.com/antonisgkamitsios/verese/internal/reqctx"
 
 templ Register(user models.User) {
 	@layout.Base("register") {
@@ -12,7 +12,7 @@ templ Register(user models.User) {
 
 templ RegisterForm(user models.User) {
 	<form hx-post="/register" hx-swap="outerHTML" hx-indicator="#submit-btn" hx-disabled-elt="#submit-btn">
-		<input type="hidden" name="csrf_token" value={ csrf.GetCSRF(ctx) }/>
+		<input type="hidden" name="csrf_token" value={ reqctx.CSRF(ctx) }/>
 		<div class={ "group mb-4", templ.KV("error", user.Errors["name"] != "") }>
 			<label for="name">Name</label>
 			<input
@@ -101,7 +101,7 @@ templ Login(form models.LoginForm) {
 
 templ LoginForm(form models.LoginForm) {
 	<form hx-post="/login" hx-swap="outerHTML" hx-indicator="#login-btn" hx-disabled-elt="#login-btn">
-		<input type="hidden" name="csrf_token" value={ csrf.GetCSRF(ctx) }/>
+		<input type="hidden" name="csrf_token" value={ reqctx.CSRF(ctx) }/>
 		<div class={ "group mb-4", templ.KV("error", form.Errors["email"] != "") }>
 			<label for="email">Email</label>
 			<input
@@ -131,6 +131,15 @@ templ LoginForm(form models.LoginForm) {
 				</div>
 			}
 		</div>
+		if len(form.NonFieldErrors)>0 {
+			<div>
+				for _, msg := range form.NonFieldErrors {
+					<div class="text-red-500 error pt-1">
+						{ msg }
+					</div>
+				}
+			</div>
+		}
 		<button
 			id="login-btn"
 			type="submit"

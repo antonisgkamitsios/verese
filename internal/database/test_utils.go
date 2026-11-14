@@ -14,7 +14,7 @@ import (
 func SetupTestDb(t *testing.T) *pgxpool.Pool {
 	cfg := Config{
 		// TODO add test db
-		Dsn:         "postgres://verese:pass@localhost/verese?sslmode=disable",
+		// Dsn:         "postgres://verese:pass@localhost/verese?sslmode=disable",
 		MaxConns:    25,
 		MaxIdleTime: 15 * time.Second,
 	}

@@ -8,9 +8,8 @@ import (
 	"time"
 
 	"github.com/antonisgkamitsios/verese/app"
-	"github.com/antonisgkamitsios/verese/internal/csrf"
-	"github.com/antonisgkamitsios/verese/internal/htmx"
 	"github.com/antonisgkamitsios/verese/internal/models"
+	"github.com/antonisgkamitsios/verese/internal/reqctx"
 	"github.com/justinas/nosurf"
 )
 
@@ -84,8 +83,7 @@ func (m *MiddleWare) CacheStaticFilesInProd(next http.Handler) http.Handler {
 func (m *MiddleWare) Csrf(next http.Handler) http.Handler {
 	n := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		token := nosurf.Token(r)
-		ctx := context.WithValue(r.Context(), csrf.CSRFContextKey, token)
-		next.ServeHTTP(w, r.WithContext(ctx))
+		next.ServeHTTP(w, reqctx.RequestWithCsrfToken(r, token))
 	})
 
 	csrfHandler := nosurf.New(n)
@@ -106,29 +104,34 @@ func (m *MiddleWare) ComesFromHtmx(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		isHtmxRequest := r.Header.Get("Hx-Request") != ""
 
-		next.ServeHTTP(w, htmx.ContextSetHtmxRequest(r, isHtmxRequest))
+		next.ServeHTTP(w, reqctx.RequestWithHtmx(r, isHtmxRequest))
 	})
 }
 
 func (m *MiddleWare) Authenticate(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		userId := m.app.Session.GetInt(r.Context(), "user_id")
+		userId := m.app.Session.GetInt64(r.Context(), "user_id")
 		if userId == 0 {
 			r = r.WithContext(context.WithValue(r.Context(), "user", models.AnonymousUser))
 			next.ServeHTTP(w, r)
 			return
 		}
 
-		// check if user exists in the db
-		// and if exists add it to the context
-
-		user := models.User{
-			ID:    int64(userId),
-			Name:  "Foo",
-			Email: "foo@mail.com",
+		user, err := m.app.Models.Users.GetById(userId)
+		if err != nil {
+			switch {
+			case errors.Is(err, models.ErrRecordNotFound):
+				m.app.Session.Remove(r.Context(), "user_id")
+				r = r.WithContext(context.WithValue(r.Context(), "user", models.AnonymousUser))
+				next.ServeHTTP(w, r)
+				return
+			default:
+				m.app.ServerError(w, r, err)
+				return
+			}
 		}
 
-		ctx := context.WithValue(r.Context(), "user", &user)
+		ctx := context.WithValue(r.Context(), "user", user)
 
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})

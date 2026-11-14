@@ -7,7 +7,8 @@ import (
 )
 
 type Validator struct {
-	Errors Error
+	Errors         Error    `db:"-"`
+	NonFieldErrors []string `db:"-"`
 }
 
 type Error map[string]string
@@ -28,6 +29,10 @@ func (v *Validator) AddError(key, message string) {
 	if _, exists := v.Errors[key]; !exists {
 		v.Errors[key] = message
 	}
+}
+
+func (v *Validator) AddNonFieldError(message string) {
+	v.NonFieldErrors = append(v.NonFieldErrors, message)
 }
 
 func (v *Validator) Check(ok bool, key, message string) {

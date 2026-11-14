@@ -1,10 +1,10 @@
 package layout
 
 import "github.com/antonisgkamitsios/verese/static"
-import "github.com/antonisgkamitsios/verese/internal/htmx"
+import "github.com/antonisgkamitsios/verese/internal/reqctx"
 
 templ Base(title string) {
-	if htmx.ContextGetHtmxRequest(ctx) {
+	if reqctx.IsHtmx(ctx) {
 		<title>{ title }</title>
 		<head>
 			<link data-track="reload" href={ static.FilePath("style.css") } rel="stylesheet"/>
