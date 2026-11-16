@@ -1,7 +1,7 @@
 -- +goose Up
 
 CREATE TABLE IF NOT EXISTS users (
-    id bigint GENERATED ALWAYS AS IDENTITY,
+    id bigint PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
     name text NOT NULL,
     email citext UNIQUE NOT NULL,
     password_hash bytea NOT NULL,

@@ -13,6 +13,7 @@ import (
 func main() {
 	var config app.Config
 
+	config.BaseUrl = "localhost:6969"
 	config.Port = 6969
 	config.Env = app.EnvDevelopment
 

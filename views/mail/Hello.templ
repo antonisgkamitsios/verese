@@ -1,7 +1,10 @@
 package mail
 
 import "github.com/antonisgkamitsios/verese/internal/models"
+import "fmt"
 
-templ Hello(user models.User) {
-	<h1>{ user.Name } Hello from golang</h1>
+templ Hello(user models.User, token models.Token, baseUrl string) {
+	<h1>Hello { user.Name }</h1>
+	<p>in order to proceed to your account you must activate it first</p>
+	<a href={ templ.SafeURL(fmt.Sprintf("%s/users/%d/activate?token=%s", baseUrl, user.ID, token.PlainText)) }>Activate!</a>
 }

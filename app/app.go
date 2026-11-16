@@ -21,10 +21,11 @@ const (
 )
 
 type Config struct {
-	Port int
-	Env  string
-	Db   database.Config
-	Smtp mailer.Config
+	BaseUrl string
+	Port    int
+	Env     string
+	Db      database.Config
+	Smtp    mailer.Config
 }
 
 type Application struct {

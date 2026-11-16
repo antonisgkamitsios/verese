@@ -30,5 +30,11 @@ func (h *Handlers) SetupRoutes() http.Handler {
 	r.Post("/login", h.LoginPost)
 	r.Post("/logout", h.LogoutPost)
 
+	r.Route("/users", func(r chi.Router) {
+		r.Route("/{id}", func(r chi.Router) {
+			r.Get("/activate", h.UserActivate)
+		})
+	})
+
 	return r
 }

@@ -7,5 +7,5 @@ CREATE TABLE IF NOT EXISTS sessions (
 CREATE INDEX IF NOT EXISTS sessions_expiry_idx ON sessions (expiry);
 
 -- +goose Down
-DROP TABLE IF EXISTS sessions
-DROP INDEX IF EXISTS sessions_expiry_idx
+DROP TABLE IF EXISTS sessions;
+DROP INDEX IF EXISTS sessions_expiry_idx;

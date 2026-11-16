@@ -43,8 +43,9 @@ type password struct {
 type UserModelInterface interface {
 	GetById(id int64) (*User, error)
 	GetByEmail(email string) (*User, error)
-	GetForToken(scope Scope, tokenPlainText string) (*User, error)
+	FindByToken(scope Scope, tokenPlainText string) (*User, error)
 	Insert(user *User) error
+	Update(user *User) error
 }
 
 func (u *User) IsAnonymous() bool {
@@ -165,7 +166,7 @@ func (m UserModel) GetByEmail(email string) (*User, error) {
 	return &user, nil
 }
 
-func (m UserModel) GetForToken(scope Scope, tokenPlainText string) (*User, error) {
+func (m UserModel) FindByToken(scope Scope, tokenPlainText string) (*User, error) {
 	tokenHash := sha256.Sum256([]byte(tokenPlainText))
 
 	query := `
@@ -216,6 +217,34 @@ func (m UserModel) Insert(user *User) error {
 		switch {
 		case strings.Contains(err.Error(), `"users_email_key" (SQLSTATE 23505)`):
 			return ErrDuplicateEmail
+		default:
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (m UserModel) Update(user *User) error {
+	query := `
+		UPDATE users
+		SET name = $1, email = $2, password_hash = $3, activated = $4, version = version + 1, updated_at = $5
+		WHERE id = $6 AND version = $7
+		RETURNING version, updated_at
+	`
+
+	args := []any{user.Name, user.Email, user.Password.hash, user.Activated, time.Now(), user.ID, user.Version}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	err := m.DB.QueryRow(ctx, query, args...).Scan(&user.Version, &user.UpdatedAt)
+	if err != nil {
+		switch {
+		case strings.Contains(err.Error(), `"users_email_key" (SQLSTATE 23505)`):
+			return ErrDuplicateEmail
+		case errors.Is(err, pgx.ErrNoRows):
+			return ErrEditConflict
 		default:
 			return err
 		}

@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/antonisgkamitsios/verese/internal/models"
 	"github.com/antonisgkamitsios/verese/views/mail"
@@ -62,8 +63,14 @@ func (h *Handlers) RegisterPost(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	token, err := h.app.Models.Tokens.New(user.ID, 24*time.Hour, models.ScopeActivation)
+	if err != nil {
+		h.app.ServerError(w, r, err)
+		return
+	}
+
 	h.app.Background(func() {
-		err = h.app.Mailer.Send(user.Email, "Welcome lover", mail.Hello(user))
+		err = h.app.Mailer.Send(user.Email, "Welcome lover", mail.Hello(user, *token, h.app.Config.BaseUrl))
 		if err != nil {
 			h.app.Logger.Error(fmt.Sprintf("Error sending email %v", err))
 		}
@@ -115,6 +122,12 @@ func (h *Handlers) LoginPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if !user.Activated {
+		form.AddNonFieldError("you must activate your account first! Visit your email for instructions")
+		h.app.Render(w, r, http.StatusUnprocessableEntity, pages.LoginForm(form))
+		return
+	}
+
 	err = h.app.Session.RenewToken(r.Context())
 	if err != nil {
 		h.app.ServerError(w, r, err)
@@ -137,4 +150,55 @@ func (h *Handlers) LogoutPost(w http.ResponseWriter, r *http.Request) {
 	// todo when remember me is implemented here we will delete token + the cookie
 
 	h.app.Redirect(w, r, "/")
+}
+
+func (h *Handlers) UserActivate(w http.ResponseWriter, r *http.Request) {
+	id, err := h.app.ParseIDParam(r)
+	if err != nil {
+		h.app.ClientError(w, r, http.StatusNotFound, "the resource was not found")
+		return
+	}
+
+	token := r.URL.Query().Get("token")
+	if token == "" {
+		h.app.ClientError(w, r, http.StatusNotFound, "the resource was not found")
+		return
+	}
+
+	user, err := h.app.Models.Users.FindByToken(models.ScopeActivation, token)
+	if err != nil {
+		switch {
+		case errors.Is(err, models.ErrRecordNotFound):
+			h.app.ClientError(w, r, http.StatusNotFound, "the resource was not found")
+			return
+		default:
+			h.app.ServerError(w, r, err)
+			return
+		}
+	}
+
+	if user.ID != id {
+		h.app.ClientError(w, r, http.StatusNotFound, "the resource was not found")
+		return
+	}
+
+	user.Activated = true
+	err = h.app.Models.Users.Update(user)
+	if err != nil {
+		switch {
+		case errors.Is(err, models.ErrEditConflict):
+			h.app.ClientError(w, r, http.StatusNotFound, "there was an error please try again")
+		default:
+			h.app.ServerError(w, r, err)
+		}
+		return
+	}
+
+	err = h.app.Models.Tokens.DeleteAllForUser(user.ID, models.ScopeActivation)
+	if err != nil {
+		h.app.ServerError(w, r, err)
+		return
+	}
+
+	fmt.Fprintf(w, "User  is: %+v\n", user)
 }

@@ -13,9 +13,9 @@ import (
 
 type Scope string
 
-var (
-	ScopeActivation = "activation"
-	ScopeRememberMe = "remember_me"
+const (
+	ScopeActivation Scope = "activation"
+	ScopeRememberMe Scope = "remember_me"
 )
 
 type TokenModel struct {
@@ -67,9 +67,9 @@ func generateToken(userID int64, ttl time.Duration, scope Scope) (*Token, error)
 
 func (m TokenModel) Insert(token *Token) error {
 	query := `
-		INSERT INTO tokens (hash user_id, scope, expires_at)
+		INSERT INTO tokens (hash, user_id, scope, expires_at)
 		VALUES($1, $2, $3, $4)
-		RETURNING(created_at, updated_at)
+		RETURNING created_at, updated_at
 	`
 
 	args := []any{token.Hash, token.UserID, token.Scope, token.ExpiresAt}
