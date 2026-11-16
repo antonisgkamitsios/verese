@@ -37,6 +37,7 @@ live/esbuild:
 
 live/sync_assets:
 	go run github.com/air-verse/air@v1.63.0 \
+	--tmp_dir "tmp/assets" \
 	--build.cmd "go tool templ generate --notify-proxy" \
 	--build.bin "true" \
 	--build.stop_on_error "false" \
@@ -46,7 +47,7 @@ live/sync_assets:
 	--build.include_ext "js,css"
 
 ## live/debug: Run the server on watch mode with debug information
-live/debug: 
+live-debug: 
 	make -j5 live/templ live/server-debug live/tailwind live/esbuild live/sync_assets
 
 ## live: Run the server on watch mode
