@@ -1,7 +1,6 @@
 package middleware
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"net/http"
@@ -112,8 +111,7 @@ func (m *MiddleWare) Authenticate(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		userId := m.app.Session.GetInt64(r.Context(), "user_id")
 		if userId == 0 {
-			r = r.WithContext(context.WithValue(r.Context(), "user", models.AnonymousUser))
-			next.ServeHTTP(w, r)
+			next.ServeHTTP(w, reqctx.RequestWithUser(r, models.AnonymousUser))
 			return
 		}
 
@@ -122,8 +120,7 @@ func (m *MiddleWare) Authenticate(next http.Handler) http.Handler {
 			switch {
 			case errors.Is(err, models.ErrRecordNotFound):
 				m.app.Session.Remove(r.Context(), "user_id")
-				r = r.WithContext(context.WithValue(r.Context(), "user", models.AnonymousUser))
-				next.ServeHTTP(w, r)
+				next.ServeHTTP(w, reqctx.RequestWithUser(r, models.AnonymousUser))
 				return
 			default:
 				m.app.ServerError(w, r, err)
@@ -131,8 +128,6 @@ func (m *MiddleWare) Authenticate(next http.Handler) http.Handler {
 			}
 		}
 
-		ctx := context.WithValue(r.Context(), "user", user)
-
-		next.ServeHTTP(w, r.WithContext(ctx))
+		next.ServeHTTP(w, reqctx.RequestWithUser(r, user))
 	})
 }
