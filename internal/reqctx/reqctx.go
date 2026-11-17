@@ -50,7 +50,7 @@ func RequestWithUser(r *http.Request, user *models.User) *http.Request {
 	return r.WithContext(ctx)
 }
 
-func User(ctx context.Context) *models.User {
+func CurrentUser(ctx context.Context) *models.User {
 	user, ok := ctx.Value(userKey).(*models.User)
 	if !ok {
 		panic("missing user value, make sure you have wrapped called `RequestWithUser`")
