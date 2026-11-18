@@ -17,7 +17,7 @@ live/server-debug:
 	--build.full_bin "dlv exec --headless --listen=127.0.0.1:2345 --api-version=2 --accept-multiclient --continue ./tmp/bin/main" \
 	--build.delay "100" \
 	--build.exclude_dir "node_modules" \
-	--build.include_ext "go" \
+	--build.include_ext "go,sql" \
 	--build.stop_on_error "false" \
 	--misc.clean_on_exit true
 
@@ -25,7 +25,7 @@ live/server:
 	go run github.com/air-verse/air@v1.63.0 \
 	--build.cmd "go build -tags dev -o tmp/bin/main" --build.bin "tmp/bin/main" --build.delay "100" \
 	--build.exclude_dir "node_modules" \
-	--build.include_ext "go" \
+	--build.include_ext "go,sql" \
 	--build.stop_on_error "false" \
 	--misc.clean_on_exit true
 

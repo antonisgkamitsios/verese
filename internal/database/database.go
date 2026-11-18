@@ -2,12 +2,13 @@ package database
 
 import (
 	"context"
-	"database/sql"
 	"time"
 
 	"github.com/antonisgkamitsios/verese/migrations"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/jackc/pgx/v5/stdlib"
 	"github.com/pressly/goose/v3"
+	"github.com/pressly/goose/v3/database"
 )
 
 type Config struct {
@@ -40,12 +41,25 @@ func OpenDB(config Config) (*pgxpool.Pool, error) {
 	return db, nil
 }
 
-func Migrate(db *sql.DB) error {
+func HasPendingMigrations(db *pgxpool.Pool) (bool, error) {
+	provider, err := goose.NewProvider(database.DialectPostgres, stdlib.OpenDBFromPool(db), migrations.FS)
+	if err != nil {
+		return false, err
+	}
+	pending, err := provider.HasPending(context.Background())
+	if err != nil {
+		return false, err
+	}
+
+	return pending, nil
+}
+
+func Migrate(db *pgxpool.Pool) error {
 	goose.SetBaseFS(migrations.FS)
 	err := goose.SetDialect(string(goose.DialectPostgres))
 	if err != nil {
 		return err
 	}
 
-	return goose.Up(db, ".")
+	return goose.Up(stdlib.OpenDBFromPool(db), ".")
 }

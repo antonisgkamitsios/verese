@@ -3,6 +3,7 @@ package handler
 import (
 	"net/http"
 
+	"github.com/antonisgkamitsios/verese/app"
 	"github.com/antonisgkamitsios/verese/middleware"
 	"github.com/antonisgkamitsios/verese/static"
 	"github.com/go-chi/chi/v5"
@@ -17,22 +18,30 @@ func (h *Handlers) SetupRoutes() http.Handler {
 
 	r.NotFound(h.NotFoundHandler)
 
+	// static routes
 	r.Group(func(r chi.Router) {
 		r.Use(m.CacheStaticFilesInProd, m.DisableCacheInDevMode)
 		r.Method("GET", "/static/*", http.StripPrefix("/static", static.StaticFileServer()))
 	})
-	r.Get("/", h.Home)
 
-	r.Get("/register", h.Register)
-	r.Post("/register", h.RegisterPost)
+	// web routes
+	r.Group(func(r chi.Router) {
+		if h.app.Config.Env == app.EnvDevelopment {
+			r.Use(m.CheckPendingMigrations)
+		}
+		r.Get("/", h.Home)
 
-	r.Get("/login", h.Login)
-	r.Post("/login", h.LoginPost)
-	r.Post("/logout", h.LogoutPost)
+		r.Get("/register", h.Register)
+		r.Post("/register", h.RegisterPost)
 
-	r.Route("/users", func(r chi.Router) {
-		r.Route("/{id}", func(r chi.Router) {
-			r.Get("/activate", h.UserActivate)
+		r.Get("/login", h.Login)
+		r.Post("/login", h.LoginPost)
+		r.Post("/logout", h.LogoutPost)
+
+		r.Route("/users", func(r chi.Router) {
+			r.Route("/{id}", func(r chi.Router) {
+				r.Get("/activate", h.UserActivate)
+			})
 		})
 	})
 

@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/antonisgkamitsios/verese/internal/database"
 	"github.com/go-chi/chi/v5"
 )
 
@@ -15,4 +16,8 @@ func (app *Application) ParseIDParam(r *http.Request) (int64, error) {
 	}
 
 	return id, nil
+}
+
+func (app *Application) HasPendingMigrations() (bool, error) {
+	return database.HasPendingMigrations(app.db)
 }

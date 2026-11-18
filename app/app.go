@@ -12,6 +12,7 @@ import (
 	"github.com/antonisgkamitsios/verese/internal/models"
 	"github.com/antonisgkamitsios/verese/internal/session"
 	"github.com/go-playground/form/v4"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 const (
@@ -38,6 +39,8 @@ type Application struct {
 
 	// keep track of all background tasks so when graceful shutdown we wait for them to finish
 	wg sync.WaitGroup
+	// keep it internal so that we can check pending migrations
+	db *pgxpool.Pool
 }
 
 func NewApplication(config Config) (*Application, func()) {
@@ -56,6 +59,8 @@ func NewApplication(config Config) (*Application, func()) {
 		Mailer:      mailer.New(config.Smtp),
 		Models:      models.NewModels(db),
 		Session:     session.NewSessionManager(db),
+
+		db: db,
 	}
 
 	return application, db.Close

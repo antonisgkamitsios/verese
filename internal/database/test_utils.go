@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/jackc/pgx/v5/stdlib"
 )
 
 func SetupTestDb(t *testing.T) *pgxpool.Pool {
@@ -29,7 +28,7 @@ func SetupTestDb(t *testing.T) *pgxpool.Pool {
 		t.Fatal(err)
 	}
 
-	err = Migrate(stdlib.OpenDBFromPool(db))
+	err = Migrate(db)
 	if err != nil {
 		t.Fatal(err)
 	}

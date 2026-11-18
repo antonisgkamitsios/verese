@@ -24,6 +24,8 @@ func NewTestApplication(t *testing.T) *Application {
 		Models:      models.NewModels(db),
 		FormDecoder: form.NewDecoder(),
 		Session:     session.NewSessionManager(db),
+
+		db: db,
 	}
 
 	return application

@@ -131,3 +131,19 @@ func (m *MiddleWare) Authenticate(next http.Handler) http.Handler {
 		next.ServeHTTP(w, reqctx.RequestWithUser(r, user))
 	})
 }
+
+func (m *MiddleWare) CheckPendingMigrations(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		hasPendingMigrations, err := m.app.HasPendingMigrations()
+		if err != nil {
+			m.app.ServerError(w, r, err)
+			return
+		}
+		if hasPendingMigrations {
+			m.app.ClientError(w, r, http.StatusBadRequest, "You have pending migrations")
+			return
+		}
+
+		next.ServeHTTP(w, r)
+	})
+}
