@@ -1,5 +1,8 @@
 package layout
 
+import "github.com/antonisgkamitsios/verese/internal/reqctx"
+import "fmt"
+
 var links = []struct {
 	name string
 	href string
@@ -67,6 +70,18 @@ templ Header() {
 					styleLinks()
 				</script>
 			</nav>
+			<div
+				hx-boost:inherited="true"
+				hx-target:inherited="#contents"
+				hx-swap:inherited="outerHTML show:no-scroll"
+			>
+				if reqctx.CurrentUser(ctx).IsAnonymous() {
+					<a href="/register">Register</a>
+					<a href="/login">Login</a>
+				} else {
+					<a hx-post="/logout" hx-headers={ fmt.Sprintf(`{"X-CSRF-Token": "%s"}`, reqctx.CSRF(ctx)) }>Logout</a>
+				}
+			</div>
 		</div>
 	</header>
 }
