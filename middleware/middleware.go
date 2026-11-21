@@ -111,7 +111,34 @@ func (m *MiddleWare) Authenticate(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		userId := m.app.Session.GetInt64(r.Context(), "user_id")
 		if userId == 0 {
-			next.ServeHTTP(w, reqctx.RequestWithUser(r, models.AnonymousUser))
+			// session is absent fallback to the remember_me token
+			rememberMeCookie, _ := r.Cookie("remember_me")
+			if rememberMeCookie == nil {
+				next.ServeHTTP(w, reqctx.RequestWithUser(r, models.AnonymousUser))
+				return
+			}
+
+			user, err := m.app.Models.Users.FindByToken(models.ScopeRememberMe, rememberMeCookie.Value)
+			if err != nil {
+				switch {
+				case errors.Is(err, models.ErrRecordNotFound):
+					// delete the cookie
+					rememberMeCookie.MaxAge = -1
+					http.SetCookie(w, rememberMeCookie)
+					next.ServeHTTP(w, reqctx.RequestWithUser(r, models.AnonymousUser))
+				default:
+					m.app.ServerError(w, r, err)
+				}
+				return
+			}
+
+			err = m.app.Session.RenewToken(r.Context())
+			if err != nil {
+				m.app.ServerError(w, r, err)
+				return
+			}
+			m.app.Session.Put(r.Context(), "user_id", user.ID)
+			next.ServeHTTP(w, reqctx.RequestWithUser(r, user))
 			return
 		}
 

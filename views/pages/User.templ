@@ -131,6 +131,21 @@ templ LoginForm(form models.LoginForm) {
 				</div>
 			}
 		</div>
+		<div class={ "group mb-4", templ.KV("error", form.Errors["remember_me"] != "") }>
+			<label for="remember_me">Remember Me</label>
+			<input
+				id="remember_me"
+				type="checkbox"
+				name="remember_me"
+				checked?={ form.RememberMe }
+				class="m-3 rounded-lg bg-shark-900 border border-shark-500 group-[.error]:border-red-500 focus:border-harvest-gold-400 outline-none"
+			/>
+			if val, exists := form.Errors["remember_me"]; exists {
+				<div class="text-red-500 error pt-1">
+					{ val }
+				</div>
+			}
+		</div>
 		if len(form.NonFieldErrors)>0 {
 			<div>
 				for _, msg := range form.NonFieldErrors {

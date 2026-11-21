@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/antonisgkamitsios/verese/internal/models"
+	"github.com/antonisgkamitsios/verese/internal/reqctx"
 	"github.com/antonisgkamitsios/verese/views/mail"
 	"github.com/antonisgkamitsios/verese/views/pages"
 )
@@ -136,6 +137,35 @@ func (h *Handlers) LoginPost(w http.ResponseWriter, r *http.Request) {
 	}
 	h.app.Session.Put(r.Context(), "user_id", user.ID)
 
+	if form.RememberMe {
+		rememberMeTok, err := h.app.Models.Tokens.New(user.ID, 365*24*time.Hour, models.ScopeRememberMe)
+		if err != nil {
+			h.app.ServerError(w, r, err)
+			return
+		}
+		http.SetCookie(w, &http.Cookie{
+			Name:     "remember_me",
+			Value:    rememberMeTok.PlainText,
+			Path:     "/",
+			MaxAge:   int((365 * 24 * time.Hour) / time.Second),
+			HttpOnly: true,
+			Secure:   true,
+			SameSite: http.SameSiteLaxMode,
+		})
+
+	} else {
+		err = h.app.Models.Tokens.DeleteAllForUser(user.ID, models.ScopeRememberMe)
+		if err != nil {
+			h.app.ServerError(w, r, err)
+			return
+		}
+		cookie, _ := r.Cookie("remember_me")
+		if cookie != nil {
+			cookie.MaxAge = -1
+			http.SetCookie(w, cookie)
+		}
+	}
+
 	h.app.Redirect(w, r, "/")
 }
 
@@ -146,8 +176,23 @@ func (h *Handlers) LogoutPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	user := reqctx.CurrentUser(r.Context())
+	if user.IsAnonymous() {
+		h.app.Redirect(w, r, "/")
+		return
+	}
+
 	h.app.Session.Remove(r.Context(), "user_id")
-	// todo when remember me is implemented here we will delete token + the cookie
+	err = h.app.Models.Tokens.DeleteAllForUser(user.ID, models.ScopeRememberMe)
+	if err != nil {
+		h.app.ServerError(w, r, err)
+		return
+	}
+	cookie, _ := r.Cookie("remember_me")
+	if cookie != nil {
+		cookie.MaxAge = -1
+		http.SetCookie(w, cookie)
+	}
 
 	h.app.Redirect(w, r, "/")
 }

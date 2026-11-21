@@ -257,6 +257,8 @@ type LoginForm struct {
 	Email    string `form:"email"`
 	Password string `form:"password"`
 
+	RememberMe bool `form:"remember_me"`
+
 	validator.Validator `form:"-"`
 }
 
